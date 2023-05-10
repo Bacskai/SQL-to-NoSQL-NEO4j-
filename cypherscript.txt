@@ -1,0 +1,25 @@
+//létrehozzuk az 5 darab felhaználókat
+
+CREATE (:Felhasználók {user_id: 'felhasznalo_1', név: 'Aladár Péter', email: 'Aladar1@gmail.com', jelszó: 'jelszó1'})
+CREATE (:Felhasználók {user_id: 'felhasznalo_2', név: 'Kovács Judit', email: 'Jutka42@gmail.com', jelszó: 'jelszó2'})
+CREATE (:Felhasználók {user_id: 'felhasznalo_3', név: 'Péter Árpád', email: 'peterarpad@gmail.com', jelszó: 'jelszó3'})
+CREATE (:Felhasználók {user_id: 'felhasznalo_4', név: 'János Ágnes', email: 'janiagi@gmail.com', jelszó: 'jelszó4'})
+CREATE (:Felhasználók {user_id: 'felhasznalo_5', név: 'Ferenc István', email: 'FerencI@gmail.com', jelszó: 'jelszó5'})
+
+//létrehozuk az 5 darab posztot(minden poszt kapcsolódik egy felhasználóhoz)
+UNWIND ['felhasznalo_1', 'felhasznalo_2', 'felhasznalo_3', 'felhasznalo_4', 'felhasznalo_5'] AS user_id
+MATCH (u:Felhasználók {user_id: user_id})
+CREATE (:Posztok {post_id: 'poszt_' + user_id, cím: 'Poszt ' + user_id, tartalom: 'Ez egy poszt ' + user_id})
+WITH u, user_id
+MATCH (p:Posztok {post_id: 'poszt_' + user_id})
+CREATE (u)-[:POSZTOLT]->(p)
+
+//létrehozzuk a 25 darab kommentet ami kapcsolódik a posztokhoz és az adott felhasználóhoz aki elhelyzte a kommentet a poszt alatt (mindenfelhasználó csak 5 alkalommal kommentelt)
+MATCH (u:Felhasználók)
+MATCH (p:Posztok)
+WHERE u.user_id IN ['felhasznalo_1', 'felhasznalo_2', 'felhasznalo_3', 'felhasznalo_4', 'felhasznalo_5']
+AND p.post_id IN ['poszt_felhasznalo_1', 'poszt_felhasznalo_2', 'poszt_felhasznalo_3', 'poszt_felhasznalo_4', 'poszt_felhasznalo_5']
+CREATE (:Kommentek {comment_id: 'komment_' + u.user_id + '_' + p.post_id, tartalom: 'Ez egy komment ' + u.user_id + 'hoz és ' + p.post_id + ' poszthoz'})
+WITH u, p
+MATCH (k:Kommentek {comment_id: 'komment_' + u.user_id + '_' + p.post_id})
+CREATE (u)-[:KOMMENTELT]->(k)-[:KAPCSOLÓDIK]->(p)
